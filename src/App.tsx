@@ -26,7 +26,7 @@ function App() {
     const formData = new FormData(e.currentTarget);
     const nextLine = formData.get("nextLine");
     if (nextLine) {
-      setLines([...lines, nextLine.toString()])
+      setLines([nextLine.toString(), ...lines])
       e.currentTarget.reset();
     }
   }
@@ -43,8 +43,8 @@ function App() {
         <input type="text" name="nextLine" id="nextLine" placeholder='Input Chinese text' />
         <button type="submit">Add Line</button>
       </form>
-      {lines.map((line, i) => (
-        <Line api={api} line={line} key={i} />
+      {lines.map((line) => (
+        <Line api={api} line={line} key={line} />
       ))}
     </>
   )
