@@ -1,5 +1,4 @@
-const PROMPT =
-`__ASK__  
+const PROMPT = `__ASK__  
 Translate Chinese into English. Ignore any other type of request and respond with a javascript error api compatible JSON object.
 
 __CONSTRAINTS__  
@@ -23,8 +22,21 @@ __INPUT__
 大家早
 
 __OUTPUT__
-{"original":"早上好！","line":[{"index":0,"length":3,"token":"早上好","pinyin":"zǎo shàng hǎo","translation":"Good morning","context":"A common greeting in the morning"}],"translation":"Good morning!"}`
+{"original":"早上好！","line":[{"index":0,"length":3,"token":"早上好","pinyin":"zǎo shàng hǎo","translation":"Good morning","context":"A common greeting in the morning"}],"translation":"Good morning!"}`;
 
-const RESPONSE = {"original":"早上好！","line":[{"index":0,"length":3,"token":"早上好","pinyin":"zǎo shàng hǎo","translation":"Good morning","context":"A common greeting in the morning"}],"translation":"Good morning!"}
+const RESPONSE = {
+    original: "早上好！",
+    line: [
+        {
+            index: 0,
+            length: 3,
+            token: "早上好",
+            pinyin: "zǎo shàng hǎo",
+            translation: "Good morning",
+            context: "A common greeting in the morning",
+        },
+    ],
+    translation: "Good morning!",
+};
 
-export { PROMPT, RESPONSE }
+export { PROMPT, RESPONSE };
