@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./App.css";
-import { Line } from "./lib/Components";
+import { DropZone, Line } from "./lib/Components";
 import Api from "./lib/api";
 import { VoiceProvider } from "./lib/Providers";
 
@@ -34,6 +34,7 @@ function App() {
 
     return (
         <VoiceProvider>
+            <DropZone />
             {!import.meta.env.DEV && (
                 <form onSubmit={handleAddKey}>
                     <input

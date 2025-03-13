@@ -132,7 +132,26 @@ button[type="submit"]:hover {
     margin: 8px 10px;
 }
 
+.dropZone {
+    position: fixed;
+    bottom: 1%;
+    right: 1%;
+    border-radius: 100%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    margin: auto;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
 @media (prefers-color-scheme: dark) {
+    .dropZone {
+        background-color: red;
+        color: white;
+    }
+
     .more-details {
         background-color: #121212;
         border: 2px #121212 solid;

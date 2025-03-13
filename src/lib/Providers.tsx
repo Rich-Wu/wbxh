@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { SpeechContext } from "./Contexts";
 
-export function VoiceProvider({ children }: { children: ReactNode }) {
+export const VoiceProvider = ({ children }: { children: ReactNode }) => {
     const [voice, setVoice] = useState<SpeechSynthesisVoice | null>(null);
 
     useEffect(() => {
@@ -40,4 +40,4 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
             {children}
         </SpeechContext.Provider>
     );
-}
+};

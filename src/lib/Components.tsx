@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import Api from "./api";
 import classes from "classnames";
 import { SpeechContext } from "./Contexts";
@@ -195,4 +195,14 @@ const TranslatedText = ({
     );
 };
 
-export { Line, Spinner };
+const DropZone = () => {
+    const zone = useRef(null);
+
+    return (
+        <div ref={zone} className="dropZone">
+            <div className={classes("center")}>✚</div>
+        </div>
+    );
+};
+
+export { Line, Spinner, DropZone };
