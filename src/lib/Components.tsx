@@ -104,16 +104,24 @@ const Translated = ({ translation }: { translation: any }) => {
 
     const out = [];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tokensMap = tokens.map((token: any) => {
+        return {
+            ...token,
+            idx: original.indexOf(token.token),
+            length: token.token.length,
+        };
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tokensMap.sort((token1: any, token2: any) => token1.idx < token2.idx);
+
     let j = 0;
-    for (const token of tokens) {
-        const length = token.token.length;
-        const occurrence = original.indexOf(token.token, j);
-        if (j < occurrence) {
+    for (const token of tokensMap) {
+        if (j < token.idx) {
+            const untokenizedText = original.slice(j, token.idx);
             out.push(
-                <UntranslatedText
-                    key={out.length}
-                    text={original.slice(j, occurrence)}
-                />
+                <UntranslatedText key={out.length} text={untokenizedText} />
             );
         }
         out.push(
@@ -123,7 +131,7 @@ const Translated = ({ translation }: { translation: any }) => {
                 translation={token}
             />
         );
-        j = occurrence + length;
+        j = token.idx + token.length;
     }
     if (j < original.length) {
         out.push(
