@@ -146,6 +146,10 @@ button[type="submit"]:hover {
     font-size: 1.2rem;
 }
 
+.dropZone:hover.selected {
+    cursor: copy;
+}
+
 @media (prefers-color-scheme: dark) {
     .dropZone {
         background-color: red;

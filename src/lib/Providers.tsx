@@ -1,5 +1,10 @@
 import { ReactNode, useEffect, useState } from "react";
-import { SpeechContext } from "./Contexts";
+import {
+    DraggedTokenContext,
+    SavedTokensContext,
+    SpeechContext,
+} from "./Contexts";
+import { Token } from "./Types";
 
 export const VoiceProvider = ({ children }: { children: ReactNode }) => {
     const [voice, setVoice] = useState<SpeechSynthesisVoice | null>(null);
@@ -39,5 +44,32 @@ export const VoiceProvider = ({ children }: { children: ReactNode }) => {
         <SpeechContext.Provider value={voice}>
             {children}
         </SpeechContext.Provider>
+    );
+};
+
+export const DraggedTokenProvider = ({ children }: { children: ReactNode }) => {
+    const [draggedToken, setDraggedToken] = useState<Token | null>(null);
+
+    return (
+        <DraggedTokenContext.Provider value={{ draggedToken, setDraggedToken }}>
+            {children}
+        </DraggedTokenContext.Provider>
+    );
+};
+
+export const SavedTokensProvider = ({ children }: { children: ReactNode }) => {
+    // Remove after testing
+    const testToken = {
+        token: "你好",
+        pinyin: "ni hao",
+        translation: "Hello",
+        context: "A greeting",
+    } as Token;
+    const [savedTokens, setSavedTokens] = useState<Array<Token>>([testToken]);
+
+    return (
+        <SavedTokensContext.Provider value={{ savedTokens, setSavedTokens }}>
+            {children}
+        </SavedTokensContext.Provider>
     );
 };

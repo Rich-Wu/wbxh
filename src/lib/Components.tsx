@@ -1,7 +1,13 @@
 import { useContext, useRef, useState } from "react";
 import Api from "./api";
 import classes from "classnames";
-import { SpeechContext } from "./Contexts";
+import {
+    DraggedTokenContext,
+    SavedTokensContext,
+    SpeechContext,
+} from "./Contexts";
+import { Token } from "./Types";
+import { SavedTokensProvider } from "./Providers";
 
 const Line = ({ line, api }: { line: string; api: null | Api }) => {
     const [translated, setTranslated] = useState(false);
@@ -72,10 +78,10 @@ const RawEntry = ({
 };
 
 const Speaker = ({ text }: { text: string }) => {
-    const voiceContext = useContext(SpeechContext);
+    const voice = useContext(SpeechContext);
     const speak = (token: string) => {
         const utterance = new SpeechSynthesisUtterance(token);
-        utterance.voice = voiceContext;
+        utterance.voice = voice;
         utterance.lang = "zh-CN";
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
@@ -104,8 +110,9 @@ const Translated = ({ translation }: { translation: any }) => {
 
     const out = [];
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tokensMap = tokens.map((token: any) => {
+    type TokenIndexLength = Token & { length: number; idx: number };
+
+    const tokensMap = tokens.map((token: Token) => {
         return {
             ...token,
             idx: original.indexOf(token.token),
@@ -113,8 +120,10 @@ const Translated = ({ translation }: { translation: any }) => {
         };
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokensMap.sort((token1: any, token2: any) => token1.idx < token2.idx);
+    tokensMap.sort(
+        (token1: TokenIndexLength, token2: TokenIndexLength) =>
+            token1.idx < token2.idx
+    );
 
     let j = 0;
     for (const token of tokensMap) {
@@ -163,19 +172,29 @@ const TranslatedText = ({
     translation,
 }: {
     text: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    translation: any;
+    translation: Token;
 }) => {
     const [showTranslation, setShowTranslation] = useState(false);
-    const voiceContext = useContext(SpeechContext);
+    const { setDraggedToken } = useContext(DraggedTokenContext);
+
+    const voice = useContext(SpeechContext);
 
     const speak = (token: string) => {
         const utterance = new SpeechSynthesisUtterance(token);
-        utterance.voice = voiceContext;
+        utterance.voice = voice;
         utterance.lang = "zh-CN";
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
         speechSynthesis.speak(utterance);
+    };
+
+    const handleDrag = () => {
+        setDraggedToken((prevToken: Token) => {
+            if (prevToken === translation) {
+                return prevToken;
+            }
+            return translation;
+        });
     };
 
     return (
@@ -184,9 +203,16 @@ const TranslatedText = ({
             onClick={() => setShowTranslation(true)}
             onMouseLeave={() => setShowTranslation(false)}
             onDoubleClick={() => speak(text)}
+            onDragStart={handleDrag}
+            onDragEnd={() => setDraggedToken(null)}
+            draggable
         >
             <div>{text}</div>
-            <div className={classes("tooltiptext", { show: showTranslation })}>
+            <div
+                className={classes("tooltiptext", {
+                    show: showTranslation,
+                })}
+            >
                 <div>{translation.pinyin}</div>
                 <div>{translation.translation}</div>
                 {translation.context && <div>{translation.context}</div>}
@@ -196,10 +222,21 @@ const TranslatedText = ({
 };
 
 const DropZone = () => {
-    const zone = useRef(null);
+    const { savedTokens, setSavedTokens } =
+        useContext(SavedTokensContext) || {};
+    const { draggedToken } = useContext(DraggedTokenContext);
+    console.log(setSavedTokens);
+
+    const handleDrop = () => {
+        setSavedTokens([...savedTokens, { ...draggedToken }]);
+    };
 
     return (
-        <div ref={zone} className="dropZone">
+        <div
+            className={classes("dropZone")}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleDrop}
+        >
             <div className={classes("center")}>✚</div>
         </div>
     );
