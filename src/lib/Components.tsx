@@ -1,13 +1,10 @@
-import { useContext, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import Api from "./api";
 import classes from "classnames";
-import {
-    DraggedTokenContext,
-    SavedTokensContext,
-    SpeechContext,
-} from "./Contexts";
+import { DraggedTokenContext, SpeechContext, useVoice } from "./Contexts";
 import { Token } from "./Types";
-import { SavedTokensProvider } from "./Providers";
+import { useStorageContext } from "./Hooks";
+import classNames from "classnames";
 
 const Line = ({ line, api }: { line: string; api: null | Api }) => {
     const [translated, setTranslated] = useState(false);
@@ -78,7 +75,7 @@ const RawEntry = ({
 };
 
 const Speaker = ({ text }: { text: string }) => {
-    const voice = useContext(SpeechContext);
+    const voice = useVoice();
     const speak = (token: string) => {
         const utterance = new SpeechSynthesisUtterance(token);
         utterance.voice = voice;
@@ -133,13 +130,7 @@ const Translated = ({ translation }: { translation: any }) => {
                 <UntranslatedText key={out.length} text={untokenizedText} />
             );
         }
-        out.push(
-            <TranslatedText
-                key={out.length}
-                text={token.token}
-                translation={token}
-            />
-        );
+        out.push(<TranslatedText key={out.length} translation={token} />);
         j = token.idx + token.length;
     }
     if (j < original.length) {
@@ -167,13 +158,7 @@ const UntranslatedText = ({ text }: { text: string }) => {
     return <div className={classes("word")}>{text}</div>;
 };
 
-const TranslatedText = ({
-    text,
-    translation,
-}: {
-    text: string;
-    translation: Token;
-}) => {
+const TranslatedText = ({ translation }: { translation: Token }) => {
     const [showTranslation, setShowTranslation] = useState(false);
     const { setDraggedToken } = useContext(DraggedTokenContext);
 
@@ -202,12 +187,12 @@ const TranslatedText = ({
             className={classes("more-details", "word", "tooltip")}
             onClick={() => setShowTranslation(true)}
             onMouseLeave={() => setShowTranslation(false)}
-            onDoubleClick={() => speak(text)}
+            onDoubleClick={() => speak(translation.token)}
             onDragStart={handleDrag}
             onDragEnd={() => setDraggedToken(null)}
             draggable
         >
-            <div>{text}</div>
+            <div>{translation.token}</div>
             <div
                 className={classes("tooltiptext", {
                     show: showTranslation,
@@ -221,25 +206,91 @@ const TranslatedText = ({
     );
 };
 
-const DropZone = () => {
-    const { savedTokens, setSavedTokens } =
-        useContext(SavedTokensContext) || {};
+export const AddTokenDropZone = () => {
+    const { savedTokens, setSavedTokens } = useStorageContext();
     const { draggedToken } = useContext(DraggedTokenContext);
-    console.log(setSavedTokens);
 
     const handleDrop = () => {
         setSavedTokens([...savedTokens, { ...draggedToken }]);
     };
 
     return (
-        <div
-            className={classes("dropZone")}
-            onDragOver={(e) => e.preventDefault()}
+        <DroppableAddButton
             onDrop={handleDrop}
-        >
-            <div className={classes("center")}>✚</div>
+            classes={classNames("dropZone", "add")}
+        />
+    );
+};
+
+export const RemoveTokenDropZone = () => {
+    const { savedTokens, setSavedTokens } = useStorageContext();
+    const { draggedToken } = useContext(DraggedTokenContext);
+
+    const handleDrop = () => {
+        setSavedTokens(
+            savedTokens.filter((token) => token.token != draggedToken.token)
+        );
+    };
+
+    return (
+        <DroppableRemoveButton
+            onDrop={handleDrop}
+            classes={classNames("dropZone", "remove")}
+        />
+    );
+};
+
+const withDroppable = <P extends object>(
+    WrappedComponent: React.ComponentType<P>
+) => {
+    return (
+        props: P & {
+            classes?: string;
+            onDrop?: (event: React.DragEvent) => void;
+        }
+    ) => {
+        const handleDragOver = (event: React.DragEvent) => {
+            event.preventDefault();
+        };
+        const handleDrop = (event: React.DragEvent) => {
+            event.preventDefault();
+            if (props.onDrop) {
+                props.onDrop(event);
+            }
+        };
+        return (
+            <div
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                className={props.classes}
+            >
+                <WrappedComponent {...props} />
+            </div>
+        );
+    };
+};
+
+const RemoveButton = () => {
+    return <div className="center">-</div>;
+};
+
+const AddButton = () => {
+    return <div className={classes("center")}>✚</div>;
+};
+
+const DroppableRemoveButton = withDroppable(RemoveButton);
+const DroppableAddButton = withDroppable(AddButton);
+
+const SavedTokensList = (props) => {
+    const { savedTokens, setSavedTokens } = useStorageContext();
+
+    return (
+        <div>
+            {savedTokens.map((token: Token) => (
+                <TranslatedText key={token.token} translation={token} />
+            ))}
         </div>
     );
 };
 
-export { Line, Spinner, DropZone };
+export { Line, Spinner, SavedTokensList };

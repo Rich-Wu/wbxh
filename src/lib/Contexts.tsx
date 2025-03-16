@@ -1,14 +1,9 @@
-import {
-    createContext,
-    Dispatch,
-    SetStateAction,
-    ReactNode,
-    useContext,
-    useState,
-} from "react";
+import { createContext, Dispatch, SetStateAction, useContext } from "react";
 import { Token } from "./Types";
 
 export const SpeechContext = createContext<SpeechSynthesisVoice | null>(null);
+
+export const useVoice = () => useContext(SpeechContext);
 
 export const DraggedTokenContext = createContext<{
     draggedToken: Token | null;
@@ -20,4 +15,9 @@ export const SavedTokensContext = createContext<{
     setSavedTokens: Dispatch<SetStateAction<Array<Token>>>;
 } | null>(null);
 
-export const useSavedTokens = () => useContext(SavedTokensContext);
+export interface StorageContextType {
+    savedTokens: Array<Token>;
+    setSavedTokens: (value: Array<Token>) => void;
+}
+
+export const StorageContext = createContext<StorageContextType | null>(null);

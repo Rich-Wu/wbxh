@@ -1,12 +1,20 @@
 import { useState } from "react";
 import "./App.css";
-import { DropZone, Line } from "./lib/Components";
+import {
+    AddTokenDropZone,
+    DroppableAddTokenZone,
+    DropZone,
+    Line,
+    RemoveTokenDropZone,
+    SavedTokensList,
+} from "./lib/Components";
 import Api from "./lib/api";
 import {
     DraggedTokenProvider,
     SavedTokensProvider,
     VoiceProvider,
 } from "./lib/Providers";
+import classNames from "classnames";
 
 function App() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -41,31 +49,33 @@ function App() {
         <VoiceProvider>
             <DraggedTokenProvider>
                 <SavedTokensProvider>
-                    <DropZone />
-                </SavedTokensProvider>
-                {!import.meta.env.DEV && (
-                    <form onSubmit={handleAddKey}>
+                    {!import.meta.env.DEV && (
+                        <form onSubmit={handleAddKey}>
+                            <input
+                                type="text"
+                                name="api_key"
+                                id="api_key"
+                                placeholder="Your ChatGPT api key"
+                            />
+                            <button type="submit">Set Key</button>
+                        </form>
+                    )}
+                    <form onSubmit={handleAddLine}>
                         <input
                             type="text"
-                            name="api_key"
-                            id="api_key"
-                            placeholder="Your ChatGPT api key"
+                            name="nextLine"
+                            id="nextLine"
+                            placeholder="Input Chinese text"
                         />
-                        <button type="submit">Set Key</button>
+                        <button type="submit">Add Line</button>
                     </form>
-                )}
-                <form onSubmit={handleAddLine}>
-                    <input
-                        type="text"
-                        name="nextLine"
-                        id="nextLine"
-                        placeholder="Input Chinese text"
-                    />
-                    <button type="submit">Add Line</button>
-                </form>
-                {lines.map((line) => (
-                    <Line api={api} line={line} key={line} />
-                ))}
+                    {lines.map((line) => (
+                        <Line api={api} line={line} key={line} />
+                    ))}
+                    <SavedTokensList />
+                    <RemoveTokenDropZone />
+                    <AddTokenDropZone />
+                </SavedTokensProvider>
             </DraggedTokenProvider>
         </VoiceProvider>
     );

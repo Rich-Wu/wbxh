@@ -1,10 +1,12 @@
-import { ReactNode, useEffect, useState } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 import {
     DraggedTokenContext,
     SavedTokensContext,
     SpeechContext,
+    StorageContext,
 } from "./Contexts";
 import { Token } from "./Types";
+import { useStorage } from "./Hooks";
 
 export const VoiceProvider = ({ children }: { children: ReactNode }) => {
     const [voice, setVoice] = useState<SpeechSynthesisVoice | null>(null);
@@ -58,18 +60,25 @@ export const DraggedTokenProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const SavedTokensProvider = ({ children }: { children: ReactNode }) => {
-    // Remove after testing
-    const testToken = {
-        token: "你好",
-        pinyin: "ni hao",
-        translation: "Hello",
-        context: "A greeting",
-    } as Token;
-    const [savedTokens, setSavedTokens] = useState<Array<Token>>([testToken]);
+    const [savedTokens, setSavedTokens] = useState<Array<Token>>([]);
 
     return (
         <SavedTokensContext.Provider value={{ savedTokens, setSavedTokens }}>
             {children}
         </SavedTokensContext.Provider>
+    );
+};
+
+export const LocalStorageProvider: FC<{ children: ReactNode }> = ({
+    children,
+}) => {
+    const [savedTokens, setSavedTokens] = useStorage<Array<Token>>(
+        "savedTokens",
+        []
+    );
+    return (
+        <StorageContext.Provider value={{ savedTokens, setSavedTokens }}>
+            {children}
+        </StorageContext.Provider>
     );
 };

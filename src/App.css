@@ -98,17 +98,6 @@ button[type="submit"]:hover {
     visibility: visible;
 }
 
-/* .tooltip .tooltiptext::after {
-  content: " ";
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  margin-left: -7px;
-  border-width: 7px;
-  border-style: solid;
-  border-color: transparent transparent gray transparent;
-} */
-
 .word {
     position: relative;
     font-size: 2em;
@@ -132,7 +121,7 @@ button[type="submit"]:hover {
     margin: 8px 10px;
 }
 
-.dropZone {
+.dropZone.add {
     position: fixed;
     bottom: 1%;
     right: 1%;
@@ -146,12 +135,27 @@ button[type="submit"]:hover {
     font-size: 1.2rem;
 }
 
-.dropZone:hover.selected {
-    cursor: copy;
+.dropZone.remove {
+    position: fixed;
+    bottom: 10%;
+    right: 1%;
+    border-radius: 100%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    margin: auto;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
 }
 
 @media (prefers-color-scheme: dark) {
-    .dropZone {
+    .dropZone.add {
+        background-color: red;
+        color: white;
+    }
+
+    .dropZone.remove {
         background-color: red;
         color: white;
     }
