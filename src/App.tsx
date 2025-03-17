@@ -5,7 +5,7 @@ import Api from "./lib/api";
 import { VoiceProvider } from "./lib/Providers";
 
 function App() {
-    const [key, setKey] = useState(import.meta.env.VITE_API_KEY || "");
+    const [, setKey] = useState(import.meta.env.VITE_API_KEY || "");
     const [api, setApi] = useState<null | Api>(
         import.meta.env.DEV ? new Api(import.meta.env.VITE_API_KEY) : null
     );
