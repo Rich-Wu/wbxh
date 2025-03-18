@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import "./App.css";
 import { Line } from "./lib/Components";
 import Api from "./lib/api";
-import { VoiceProvider } from "./lib/Providers";
+import { OcrWorkerContext } from "./lib/Contexts";
 
 function App() {
     const [, setKey] = useState(import.meta.env.VITE_API_KEY || "");
@@ -10,6 +10,8 @@ function App() {
         import.meta.env.DEV ? new Api(import.meta.env.VITE_API_KEY) : null
     );
     const [lines, setLines] = useState<Array<string>>([]);
+    const [file, setFile] = useState<File | null>(null);
+    const sendImage = useContext(OcrWorkerContext);
 
     const handleAddKey = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -32,8 +34,23 @@ function App() {
         }
     };
 
+    const handleAddFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target?.files?.length) return;
+        const newFile = e.target.files[0];
+        if (file != newFile) {
+            setFile(() => newFile);
+        }
+    };
+
+    const handleSubmitFile = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!file) return;
+        sendImage(file);
+        e.currentTarget.reset();
+    };
+
     return (
-        <VoiceProvider>
+        <>
             {!import.meta.env.DEV && (
                 <form onSubmit={handleAddKey}>
                     <input
@@ -54,10 +71,20 @@ function App() {
                 />
                 <button type="submit">Add Line</button>
             </form>
+            <form onSubmit={handleSubmitFile}>
+                <input
+                    type="file"
+                    name="ocrImage"
+                    id="ocrImage"
+                    accept="image/*"
+                    onChange={handleAddFile}
+                />
+                <button type="submit">Add File</button>
+            </form>
             {lines.map((line) => (
                 <Line api={api} line={line} key={line} />
             ))}
-        </VoiceProvider>
+        </>
     );
 }
 
