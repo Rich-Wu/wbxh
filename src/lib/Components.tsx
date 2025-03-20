@@ -1,13 +1,13 @@
 import { useContext, useState } from "react";
 import Api from "./api";
 import classes from "classnames";
-import { DraggedTokenContext, SpeechContext, useVoice } from "./Contexts";
-import { speak } from "./Utils";
+import { DraggedTokenContext, SpeechContext } from "./Contexts";
 import { Token } from "./Types";
-import { useStorageContext } from "./Hooks";
+import { useSavedTokensContext } from "./Hooks";
 import classNames from "classnames";
+import { speak } from "./Utils";
 
-const Line = ({
+export const Line = ({
     line,
     api,
     speechRate,
@@ -89,16 +89,6 @@ const RawEntry = ({
     );
 };
 
-const Speaker = ({ text }: { text: string }) => {
-    const voice = useVoice();
-    const speak = (token: string) => {
-        const utterance = new SpeechSynthesisUtterance(token);
-        utterance.voice = voice;
-        utterance.lang = "zh-CN";
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-        speechSynthesis.speak(utterance);
-    };
 const Speaker = ({
     text,
     speechRate,
@@ -116,10 +106,6 @@ const Speaker = ({
             🔉
         </div>
     );
-};
-
-const Spinner = () => {
-    return <div className="spinner"></div>;
 };
 
 const Translated = ({
@@ -152,7 +138,7 @@ const Translated = ({
     });
 
     tokensMap.sort(
-        (token1: TokenIndexLength, token2: TokenIndexLength) =>
+        (token1: Token & { idx: number }, token2: Token & { idx: number }) =>
             token1.idx < token2.idx
     );
 
@@ -167,7 +153,6 @@ const Translated = ({
         out.push(
             <TranslatedText
                 key={out.length}
-                text={token.token}
                 translation={token}
                 speechRate={speechRate}
             />
@@ -200,31 +185,21 @@ const UntranslatedText = ({ text }: { text: string }) => {
 };
 
 const TranslatedText = ({
-    text,
     translation,
     speechRate,
 }: {
-    text: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     translation: any;
     speechRate: number;
 }) => {
     const [showTranslation, setShowTranslation] = useState(false);
-    const { setDraggedToken } = useContext(DraggedTokenContext);
+    const { setDraggedToken } = useContext(DraggedTokenContext) || {};
 
     const voice = useContext(SpeechContext);
 
-    const speak = (token: string) => {
-        const utterance = new SpeechSynthesisUtterance(token);
-        utterance.voice = voice;
-        utterance.lang = "zh-CN";
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-        speechSynthesis.speak(utterance);
-    };
-
     const handleDrag = () => {
-        setDraggedToken((prevToken: Token) => {
+        if (!setDraggedToken) return;
+        setDraggedToken((prevToken: Token | null) => {
             if (prevToken === translation) {
                 return prevToken;
             }
@@ -237,9 +212,11 @@ const TranslatedText = ({
             className={classes("more-details", "word", "tooltip")}
             onClick={() => setShowTranslation(true)}
             onMouseLeave={() => setShowTranslation(false)}
-            onDoubleClick={() => speak(translation.token)}
+            onDoubleClick={() => speak(translation.token, voice, speechRate)}
             onDragStart={handleDrag}
-            onDragEnd={() => setDraggedToken(null)}
+            onDragEnd={() => {
+                if (setDraggedToken) setDraggedToken(null);
+            }}
             draggable
         >
             <div>{translation.token}</div>
@@ -257,11 +234,12 @@ const TranslatedText = ({
 };
 
 export const AddTokenDropZone = () => {
-    const { savedTokens, setSavedTokens } = useStorageContext();
-    const { draggedToken } = useContext(DraggedTokenContext);
+    const { savedValue: savedTokens, setSavedValue: setSavedTokens } =
+        useSavedTokensContext();
+    const { draggedToken } = useContext(DraggedTokenContext) || {};
 
     const handleDrop = () => {
-        setSavedTokens([...savedTokens, { ...draggedToken }]);
+        if (draggedToken) setSavedTokens([...savedTokens, { ...draggedToken }]);
     };
 
     return (
@@ -273,12 +251,15 @@ export const AddTokenDropZone = () => {
 };
 
 export const RemoveTokenDropZone = () => {
-    const { savedTokens, setSavedTokens } = useStorageContext();
-    const { draggedToken } = useContext(DraggedTokenContext);
+    const { savedValue: savedTokens, setSavedValue: setSavedTokens } =
+        useSavedTokensContext();
+    const { draggedToken } = useContext(DraggedTokenContext) || {};
 
     const handleDrop = () => {
         setSavedTokens(
-            savedTokens.filter((token) => token.token != draggedToken.token)
+            savedTokens.filter(
+                (token) => draggedToken && token.token != draggedToken.token
+            )
         );
     };
 
@@ -331,16 +312,22 @@ const AddButton = () => {
 const DroppableRemoveButton = withDroppable(RemoveButton);
 const DroppableAddButton = withDroppable(AddButton);
 
-const SavedTokensList = (props) => {
-    const { savedTokens, setSavedTokens } = useStorageContext();
+export const SavedTokensList = ({ speechRate }: { speechRate: number }) => {
+    const { savedValue: savedTokens } = useSavedTokensContext();
 
     return (
         <div>
             {savedTokens.map((token: Token) => (
-                <TranslatedText key={token.token} translation={token} />
+                <TranslatedText
+                    key={token.token}
+                    translation={token}
+                    speechRate={speechRate}
+                />
             ))}
         </div>
     );
 };
 
-export { Line, Spinner, SavedTokensList };
+export const Spinner = () => {
+    return <div className="spinner"></div>;
+};

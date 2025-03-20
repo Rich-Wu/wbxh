@@ -1,15 +1,12 @@
-import { ReactNode, useEffect, useState } from "react";
-import { OcrWorkerContext, SpeechContext } from "./Contexts";
-import { ImageLike } from "tesseract.js";
-
-export function VoiceProvider({ children }: { children: ReactNode }) {
-import { FC, ReactNode, useEffect, useState } from "react";
 import {
+    OcrWorkerContext,
+    SpeechContext,
     DraggedTokenContext,
     SavedTokensContext,
-    SpeechContext,
-    StorageContext,
 } from "./Contexts";
+import { ImageLike } from "tesseract.js";
+
+import { FC, ReactNode, useEffect, useState } from "react";
 import { Token } from "./Types";
 import { useStorage } from "./Hooks";
 
@@ -64,17 +61,17 @@ export const DraggedTokenProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-export const SavedTokensProvider = ({ children }: { children: ReactNode }) => {
-    const [savedTokens, setSavedTokens] = useState<Array<Token>>([]);
+// export const SavedTokensProvider = ({ children }: { children: ReactNode }) => {
+//     const [savedTokens, setSavedTokens] = useState<Array<Token>>([]);
 
-    return (
-        <SavedTokensContext.Provider value={{ savedTokens, setSavedTokens }}>
-            {children}
-        </SavedTokensContext.Provider>
-    );
-};
+//     return (
+//         <SavedTokensContext.Provider value={{ savedTokens, setSavedTokens }}>
+//             {children}
+//         </SavedTokensContext.Provider>
+//     );
+// };
 
-export const LocalStorageProvider: FC<{ children: ReactNode }> = ({
+export const SavedTokensProvider: FC<{ children: ReactNode }> = ({
     children,
 }) => {
     const [savedTokens, setSavedTokens] = useStorage<Array<Token>>(
@@ -82,9 +79,11 @@ export const LocalStorageProvider: FC<{ children: ReactNode }> = ({
         []
     );
     return (
-        <StorageContext.Provider value={{ savedTokens, setSavedTokens }}>
+        <SavedTokensContext.Provider
+            value={{ savedValue: savedTokens, setSavedValue: setSavedTokens }}
+        >
             {children}
-        </StorageContext.Provider>
+        </SavedTokensContext.Provider>
     );
 };
 

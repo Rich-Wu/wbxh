@@ -2,21 +2,15 @@ import { useContext, useEffect, useState } from "react";
 import "./App.css";
 import {
     AddTokenDropZone,
-    DroppableAddTokenZone,
-    DropZone,
     Line,
     RemoveTokenDropZone,
     SavedTokensList,
     Spinner,
 } from "./lib/Components";
 import Api from "./lib/api";
-import {
-    DraggedTokenProvider,
-    SavedTokensProvider,
-    OcrWorkerContext,
-} from "./lib/Contexts";
 import { processText } from "./lib/Utils";
-import classNames from "classnames";
+import { OcrWorkerContext } from "./lib/Contexts";
+import { DraggedTokenProvider, SavedTokensProvider } from "./lib/Providers";
 
 function App() {
     const [, setKey] = useState(import.meta.env.VITE_API_KEY || "");
@@ -141,7 +135,7 @@ function App() {
                             speechRate={speechRate}
                         />
                     ))}
-                    <SavedTokensList />
+                    <SavedTokensList speechRate={speechRate} />
                     <RemoveTokenDropZone />
                     <AddTokenDropZone />
                 </SavedTokensProvider>

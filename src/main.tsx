@@ -4,18 +4,18 @@ import "./index.css";
 import App from "./App.tsx";
 import {
     OcrWorkerProvider,
+    SavedTokensProvider,
     VoiceProvider,
-    LocalStorageProvider,
 } from "./lib/Providers.tsx";
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
-        <LocalStorageProvider>
+        <SavedTokensProvider>
             <VoiceProvider>
                 <OcrWorkerProvider>
                     <App />
                 </OcrWorkerProvider>
             </VoiceProvider>
-        </LocalStorageProvider>
+        </SavedTokensProvider>
     </StrictMode>
 );

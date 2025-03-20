@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { SavedTokensContext, StorageContext } from "./Contexts";
+import { SavedTokensContext } from "./Contexts";
 
 export const useStorage = <T,>(key: string, initialValue: T) => {
     const [storedValue, setStoredValue] = useState<T>(() => {
@@ -23,8 +23,8 @@ export const useStorage = <T,>(key: string, initialValue: T) => {
     return [storedValue, setStoredValue] as const;
 };
 
-export const useStorageContext = () => {
-    const context = useContext(StorageContext);
+export const useSavedTokensContext = () => {
+    const context = useContext(SavedTokensContext);
     if (!context) {
         throw new Error(
             "useStorageContext must be used within a StorageProvider"

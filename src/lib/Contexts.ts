@@ -16,14 +16,12 @@ export const DraggedTokenContext = createContext<{
     setDraggedToken: Dispatch<SetStateAction<Token | null>>;
 } | null>(null);
 
-export const SavedTokensContext = createContext<{
-    savedTokens: Array<Token>;
-    setSavedTokens: Dispatch<SetStateAction<Array<Token>>>;
-} | null>(null);
-
-export interface StorageContextType {
-    savedTokens: Array<Token>;
-    setSavedTokens: (value: Array<Token>) => void;
+export interface StorageContextType<T> {
+    savedValue: T;
+    setSavedValue: Dispatch<SetStateAction<T>>;
 }
 
-export const StorageContext = createContext<StorageContextType | null>(null);
+export const createStorageContext = <T>() =>
+    createContext<StorageContextType<T> | null>(null);
+
+export const SavedTokensContext = createStorageContext<Array<Token>>();
