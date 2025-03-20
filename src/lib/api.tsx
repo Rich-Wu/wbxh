@@ -34,7 +34,6 @@ class Api {
         });
         const params = this.translationParams(text);
         const completion = await client.chat.completions.create(params);
-        console.log(completion);
         return completion;
     }
 }

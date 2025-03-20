@@ -3,6 +3,7 @@ import "./App.css";
 import { Line, Spinner } from "./lib/Components";
 import Api from "./lib/api";
 import { OcrWorkerContext } from "./lib/Contexts";
+import { processText } from "./lib/Utils";
 
 function App() {
     const [, setKey] = useState(import.meta.env.VITE_API_KEY || "");
@@ -12,6 +13,7 @@ function App() {
     const [lines, setLines] = useState<Array<string>>([]);
     const [file, setFile] = useState<File | null>(null);
     const [waiting, setWaiting] = useState(false);
+    const [speechRate, setSpeechRate] = useState(1.0);
     const { worker, sendImage } = useContext(OcrWorkerContext) ?? {};
 
     useEffect(() => {
@@ -25,7 +27,8 @@ function App() {
     }, [worker]);
 
     const handleReply = (message: MessageEvent<string>) => {
-        console.log(message.data);
+        const reply = processText(message.data);
+        setLines(reply);
         setWaiting(false);
     };
 
@@ -79,6 +82,19 @@ function App() {
                     <button type="submit">Set Key</button>
                 </form>
             )}
+            <form>
+                <label htmlFor="speechRate">Rate: {speechRate}</label>
+                <input
+                    type="range"
+                    name="speechRate"
+                    id="speechRate"
+                    onChange={(e) => setSpeechRate(Number(e.target.value))}
+                    min="0.5"
+                    max="2"
+                    value={speechRate}
+                    step="0.1"
+                />
+            </form>
             <form onSubmit={handleAddLine}>
                 <input
                     type="text"
@@ -101,7 +117,12 @@ function App() {
                 </button>
             </form>
             {lines.map((line) => (
-                <Line api={api} line={line} key={line} />
+                <Line
+                    api={api}
+                    line={line}
+                    key={line}
+                    speechRate={speechRate}
+                />
             ))}
         </>
     );
