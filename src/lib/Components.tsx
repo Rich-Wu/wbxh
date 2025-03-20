@@ -79,6 +79,7 @@ const Speaker = ({ text }: { text: string }) => {
         utterance.lang = "zh-CN";
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
+        speechSynthesis.cancel();
         speechSynthesis.speak(utterance);
     };
 
@@ -175,6 +176,7 @@ const TranslatedText = ({
         utterance.lang = "zh-CN";
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
+        speechSynthesis.cancel();
         speechSynthesis.speak(utterance);
     };
 

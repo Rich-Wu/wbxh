@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { OcrWorkerContext, SpeechContext } from "./Contexts";
 import { ImageLike } from "tesseract.js";
 
@@ -44,32 +44,27 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
 }
 
 export const OcrWorkerProvider = ({ children }: { children: ReactNode }) => {
-    const ocrWorker = useRef<Worker | null>(null);
+    const [ocrWorker, setOcrWorker] = useState<Worker | null>(null);
 
     useEffect(() => {
-        ocrWorker.current = new Worker(
+        const worker = new Worker(
             new URL("../workers/ocrWorker.js", import.meta.url),
             { type: "module" }
         );
-        const workerRef = ocrWorker.current;
-
-        ocrWorker.current.onmessage = (e: MessageEvent) => {
-            console.log(e.data);
-        };
+        setOcrWorker(worker);
 
         return () => {
-            workerRef.terminate();
-            ocrWorker.current = null;
+            worker.terminate();
         };
     }, []);
 
     const sendImage = (image: ImageLike) => {
-        if (!ocrWorker.current) return;
-        ocrWorker.current.postMessage({ image });
+        if (!ocrWorker) return;
+        ocrWorker.postMessage({ image });
     };
 
     return (
-        <OcrWorkerContext.Provider value={sendImage}>
+        <OcrWorkerContext.Provider value={{ worker: ocrWorker, sendImage }}>
             {children}
         </OcrWorkerContext.Provider>
     );

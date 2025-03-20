@@ -1,6 +1,6 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import "./App.css";
-import { Line } from "./lib/Components";
+import { Line, Spinner } from "./lib/Components";
 import Api from "./lib/api";
 import { OcrWorkerContext } from "./lib/Contexts";
 
@@ -11,7 +11,23 @@ function App() {
     );
     const [lines, setLines] = useState<Array<string>>([]);
     const [file, setFile] = useState<File | null>(null);
-    const sendImage = useContext(OcrWorkerContext);
+    const [waiting, setWaiting] = useState(false);
+    const { worker, sendImage } = useContext(OcrWorkerContext) ?? {};
+
+    useEffect(() => {
+        if (!worker) return;
+
+        worker.onmessage = handleReply;
+
+        return () => {
+            worker.onmessage = null;
+        };
+    }, [worker]);
+
+    const handleReply = (message: MessageEvent<string>) => {
+        console.log(message.data);
+        setWaiting(false);
+    };
 
     const handleAddKey = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -45,7 +61,8 @@ function App() {
     const handleSubmitFile = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!file) return;
-        sendImage(file);
+        if (sendImage) sendImage(file);
+        setWaiting(true);
         e.currentTarget.reset();
     };
 
@@ -79,7 +96,9 @@ function App() {
                     accept="image/*"
                     onChange={handleAddFile}
                 />
-                <button type="submit">Add File</button>
+                <button type="submit">
+                    {waiting ? <Spinner /> : "Add File"}
+                </button>
             </form>
             {lines.map((line) => (
                 <Line api={api} line={line} key={line} />

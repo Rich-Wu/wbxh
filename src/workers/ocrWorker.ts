@@ -8,5 +8,5 @@ const recognizeImage = async (image: File) => {
 
 onmessage = async function (e) {
     const processed = await recognizeImage(e.data.image);
-    this.postMessage(processed.data);
+    this.postMessage(processed.data.text);
 };
