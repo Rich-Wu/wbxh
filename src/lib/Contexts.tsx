@@ -1,7 +1,13 @@
 import { createContext, Dispatch, SetStateAction, useContext } from "react";
+import { ImageLike } from "tesseract.js";
 import { Token } from "./Types";
 
 export const SpeechContext = createContext<SpeechSynthesisVoice | null>(null);
+
+export const OcrWorkerContext = createContext<{
+    worker: Worker | null;
+    sendImage: (image: ImageLike) => void;
+} | null>(null);
 
 export const useVoice = () => useContext(SpeechContext);
 

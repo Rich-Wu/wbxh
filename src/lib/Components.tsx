@@ -2,11 +2,20 @@ import { useContext, useState } from "react";
 import Api from "./api";
 import classes from "classnames";
 import { DraggedTokenContext, SpeechContext, useVoice } from "./Contexts";
+import { speak } from "./Utils";
 import { Token } from "./Types";
 import { useStorageContext } from "./Hooks";
 import classNames from "classnames";
 
-const Line = ({ line, api }: { line: string; api: null | Api }) => {
+const Line = ({
+    line,
+    api,
+    speechRate,
+}: {
+    line: string;
+    api: null | Api;
+    speechRate: number;
+}) => {
     const [translated, setTranslated] = useState(false);
     const [translation, setTranslation] = useState({});
     const [loading, setLoading] = useState(false);
@@ -39,9 +48,13 @@ const Line = ({ line, api }: { line: string; api: null | Api }) => {
                         text={line}
                         getTranslation={translate}
                         loading={loading}
+                        speechRate={speechRate}
                     />
                 ) : (
-                    <Translated translation={translation} />
+                    <Translated
+                        translation={translation}
+                        speechRate={speechRate}
+                    />
                 )}
             </div>
         </>
@@ -52,14 +65,16 @@ const RawEntry = ({
     text,
     getTranslation,
     loading,
+    speechRate,
 }: {
     text: string;
     getTranslation: (text: string) => Promise<void>;
     loading: boolean;
+    speechRate: number;
 }) => {
     return (
         <div className="bubble">
-            <Speaker text={text} />
+            <Speaker text={text} speechRate={speechRate} />
             <div className={classes("word")}>{text}</div>
             <div>
                 <button
@@ -84,9 +99,20 @@ const Speaker = ({ text }: { text: string }) => {
         utterance.pitch = 1.0;
         speechSynthesis.speak(utterance);
     };
+const Speaker = ({
+    text,
+    speechRate,
+}: {
+    text: string;
+    speechRate: number;
+}) => {
+    const voiceContext = useContext(SpeechContext);
 
     return (
-        <div className="speaker" onClick={() => speak(text)}>
+        <div
+            className="speaker"
+            onClick={() => speak(text, voiceContext, speechRate)}
+        >
             🔉
         </div>
     );
@@ -96,8 +122,14 @@ const Spinner = () => {
     return <div className="spinner"></div>;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Translated = ({ translation }: { translation: any }) => {
+const Translated = ({
+    translation,
+    speechRate,
+}: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    translation: any;
+    speechRate: number;
+}) => {
     const {
         original,
         translation: translationText,
@@ -107,12 +139,14 @@ const Translated = ({ translation }: { translation: any }) => {
 
     const out = [];
 
-    type TokenIndexLength = Token & { length: number; idx: number };
-
-    const tokensMap = tokens.map((token: Token) => {
+    let prev = 0;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tokensMap = tokens.map((token: any) => {
+        const occurrence = original.indexOf(token.token, prev);
+        prev = occurrence + token.token.length;
         return {
             ...token,
-            idx: original.indexOf(token.token),
+            idx: occurrence,
             length: token.token.length,
         };
     });
@@ -130,7 +164,14 @@ const Translated = ({ translation }: { translation: any }) => {
                 <UntranslatedText key={out.length} text={untokenizedText} />
             );
         }
-        out.push(<TranslatedText key={out.length} translation={token} />);
+        out.push(
+            <TranslatedText
+                key={out.length}
+                text={token.token}
+                translation={token}
+                speechRate={speechRate}
+            />
+        );
         j = token.idx + token.length;
     }
     if (j < original.length) {
@@ -144,7 +185,7 @@ const Translated = ({ translation }: { translation: any }) => {
 
     return (
         <div className="flex flex-column bubble">
-            <Speaker text={original} />
+            <Speaker text={original} speechRate={speechRate} />
             <div className={classes("flex", "flex-row", "flex-center")}>
                 {out.map((el) => el)}
             </div>
@@ -158,7 +199,16 @@ const UntranslatedText = ({ text }: { text: string }) => {
     return <div className={classes("word")}>{text}</div>;
 };
 
-const TranslatedText = ({ translation }: { translation: Token }) => {
+const TranslatedText = ({
+    text,
+    translation,
+    speechRate,
+}: {
+    text: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    translation: any;
+    speechRate: number;
+}) => {
     const [showTranslation, setShowTranslation] = useState(false);
     const { setDraggedToken } = useContext(DraggedTokenContext);
 

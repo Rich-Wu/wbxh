@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import "./App.css";
 import {
     AddTokenDropZone,
@@ -7,22 +7,43 @@ import {
     Line,
     RemoveTokenDropZone,
     SavedTokensList,
+    Spinner,
 } from "./lib/Components";
 import Api from "./lib/api";
 import {
     DraggedTokenProvider,
     SavedTokensProvider,
-    VoiceProvider,
-} from "./lib/Providers";
+    OcrWorkerContext,
+} from "./lib/Contexts";
+import { processText } from "./lib/Utils";
 import classNames from "classnames";
 
 function App() {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [key, setKey] = useState(import.meta.env.VITE_API_KEY || "");
+    const [, setKey] = useState(import.meta.env.VITE_API_KEY || "");
     const [api, setApi] = useState<null | Api>(
         import.meta.env.DEV ? new Api(import.meta.env.VITE_API_KEY) : null
     );
     const [lines, setLines] = useState<Array<string>>([]);
+    const [file, setFile] = useState<File | null>(null);
+    const [waiting, setWaiting] = useState(false);
+    const [speechRate, setSpeechRate] = useState(1.0);
+    const { worker, sendImage } = useContext(OcrWorkerContext) ?? {};
+
+    useEffect(() => {
+        if (!worker) return;
+
+        worker.onmessage = handleReply;
+
+        return () => {
+            worker.onmessage = null;
+        };
+    }, [worker]);
+
+    const handleReply = (message: MessageEvent<string>) => {
+        const reply = processText(message.data);
+        setLines(reply);
+        setWaiting(false);
+    };
 
     const handleAddKey = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -45,8 +66,24 @@ function App() {
         }
     };
 
+    const handleAddFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target?.files?.length) return;
+        const newFile = e.target.files[0];
+        if (file != newFile) {
+            setFile(() => newFile);
+        }
+    };
+
+    const handleSubmitFile = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!file) return;
+        if (sendImage) sendImage(file);
+        setWaiting(true);
+        e.currentTarget.reset();
+    };
+
     return (
-        <VoiceProvider>
+        <>
             <DraggedTokenProvider>
                 <SavedTokensProvider>
                     {!import.meta.env.DEV && (
@@ -60,6 +97,21 @@ function App() {
                             <button type="submit">Set Key</button>
                         </form>
                     )}
+                    <form>
+                        <label htmlFor="speechRate">Rate: {speechRate}</label>
+                        <input
+                            type="range"
+                            name="speechRate"
+                            id="speechRate"
+                            onChange={(e) =>
+                                setSpeechRate(Number(e.target.value))
+                            }
+                            min="0.5"
+                            max="2"
+                            value={speechRate}
+                            step="0.1"
+                        />
+                    </form>
                     <form onSubmit={handleAddLine}>
                         <input
                             type="text"
@@ -69,15 +121,32 @@ function App() {
                         />
                         <button type="submit">Add Line</button>
                     </form>
+                    <form onSubmit={handleSubmitFile}>
+                        <input
+                            type="file"
+                            name="ocrImage"
+                            id="ocrImage"
+                            accept="image/*"
+                            onChange={handleAddFile}
+                        />
+                        <button type="submit">
+                            {waiting ? <Spinner /> : "Add File"}
+                        </button>
+                    </form>
                     {lines.map((line) => (
-                        <Line api={api} line={line} key={line} />
+                        <Line
+                            api={api}
+                            line={line}
+                            key={line}
+                            speechRate={speechRate}
+                        />
                     ))}
                     <SavedTokensList />
                     <RemoveTokenDropZone />
                     <AddTokenDropZone />
                 </SavedTokensProvider>
             </DraggedTokenProvider>
-        </VoiceProvider>
+        </>
     );
 }
 

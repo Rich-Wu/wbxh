@@ -1,3 +1,8 @@
+import { ReactNode, useEffect, useState } from "react";
+import { OcrWorkerContext, SpeechContext } from "./Contexts";
+import { ImageLike } from "tesseract.js";
+
+export function VoiceProvider({ children }: { children: ReactNode }) {
 import { FC, ReactNode, useEffect, useState } from "react";
 import {
     DraggedTokenContext,
@@ -80,5 +85,32 @@ export const LocalStorageProvider: FC<{ children: ReactNode }> = ({
         <StorageContext.Provider value={{ savedTokens, setSavedTokens }}>
             {children}
         </StorageContext.Provider>
+    );
+};
+
+export const OcrWorkerProvider = ({ children }: { children: ReactNode }) => {
+    const [ocrWorker, setOcrWorker] = useState<Worker | null>(null);
+
+    useEffect(() => {
+        const worker = new Worker(
+            new URL("../workers/ocrWorker.js", import.meta.url),
+            { type: "module" }
+        );
+        setOcrWorker(worker);
+
+        return () => {
+            worker.terminate();
+        };
+    }, []);
+
+    const sendImage = (image: ImageLike) => {
+        if (!ocrWorker) return;
+        ocrWorker.postMessage({ image });
+    };
+
+    return (
+        <OcrWorkerContext.Provider value={{ worker: ocrWorker, sendImage }}>
+            {children}
+        </OcrWorkerContext.Provider>
     );
 };
