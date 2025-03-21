@@ -96,13 +96,10 @@ const Speaker = ({
     text: string;
     speechRate: number;
 }) => {
-    const voiceContext = useContext(SpeechContext);
+    const voice = useContext(SpeechContext);
 
     return (
-        <div
-            className="speaker"
-            onClick={() => speak(text, voiceContext, speechRate)}
-        >
+        <div className="speaker" onClick={() => speak(text, voice, speechRate)}>
             🔉
         </div>
     );
@@ -136,11 +133,6 @@ const Translated = ({
             length: token.token.length,
         };
     });
-
-    tokensMap.sort(
-        (token1: Token & { idx: number }, token2: Token & { idx: number }) =>
-            token1.idx < token2.idx
-    );
 
     let j = 0;
     for (const token of tokensMap) {

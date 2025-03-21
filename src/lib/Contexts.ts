@@ -25,3 +25,5 @@ export const createStorageContext = <T>() =>
     createContext<StorageContextType<T> | null>(null);
 
 export const SavedTokensContext = createStorageContext<Array<Token>>();
+
+export const SpeechRateContext = createStorageContext<number>();

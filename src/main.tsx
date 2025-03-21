@@ -5,17 +5,20 @@ import App from "./App.tsx";
 import {
     OcrWorkerProvider,
     SavedTokensProvider,
+    SpeechRateProvider,
     VoiceProvider,
 } from "./lib/Providers.tsx";
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <SavedTokensProvider>
-            <VoiceProvider>
-                <OcrWorkerProvider>
-                    <App />
-                </OcrWorkerProvider>
-            </VoiceProvider>
+            <SpeechRateProvider>
+                <VoiceProvider>
+                    <OcrWorkerProvider>
+                        <App />
+                    </OcrWorkerProvider>
+                </VoiceProvider>
+            </SpeechRateProvider>
         </SavedTokensProvider>
     </StrictMode>
 );

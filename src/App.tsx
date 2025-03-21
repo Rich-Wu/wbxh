@@ -11,16 +11,18 @@ import Api from "./lib/api";
 import { processText } from "./lib/Utils";
 import { OcrWorkerContext } from "./lib/Contexts";
 import { DraggedTokenProvider, SavedTokensProvider } from "./lib/Providers";
+import { useSpeechRate } from "./lib/Hooks";
 
 function App() {
-    const [, setKey] = useState(import.meta.env.VITE_API_KEY || "");
+    const [key, setKey] = useState(import.meta.env.VITE_API_KEY || "");
     const [api, setApi] = useState<null | Api>(
         import.meta.env.DEV ? new Api(import.meta.env.VITE_API_KEY) : null
     );
     const [lines, setLines] = useState<Array<string>>([]);
     const [file, setFile] = useState<File | null>(null);
     const [waiting, setWaiting] = useState(false);
-    const [speechRate, setSpeechRate] = useState(1.0);
+    const { savedValue: speechRate, setSavedValue: setSpeechRate } =
+        useSpeechRate();
     const { worker, sendImage } = useContext(OcrWorkerContext) ?? {};
 
     useEffect(() => {
@@ -80,7 +82,7 @@ function App() {
         <>
             <DraggedTokenProvider>
                 <SavedTokensProvider>
-                    {!import.meta.env.DEV && (
+                    {!import.meta.env.DEV && !key && (
                         <form onSubmit={handleAddKey}>
                             <input
                                 type="text"

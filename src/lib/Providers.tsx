@@ -3,6 +3,7 @@ import {
     SpeechContext,
     DraggedTokenContext,
     SavedTokensContext,
+    SpeechRateContext,
 } from "./Contexts";
 import { ImageLike } from "tesseract.js";
 
@@ -32,16 +33,13 @@ export const VoiceProvider = ({ children }: { children: ReactNode }) => {
             return;
         };
 
-        if (window.speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = loadVoices;
-            return () =>
-                window.speechSynthesis.removeEventListener(
-                    "voiceschanged",
-                    loadVoices
-                );
-        }
-
         loadVoices();
+        speechSynthesis.addEventListener("voiceschanged", loadVoices);
+        return () =>
+            window.speechSynthesis.removeEventListener(
+                "voiceschanged",
+                loadVoices
+            );
     }, []);
 
     return (
@@ -74,6 +72,22 @@ export const SavedTokensProvider: FC<{ children: ReactNode }> = ({
         >
             {children}
         </SavedTokensContext.Provider>
+    );
+};
+
+export const SpeechRateProvider: FC<{ children: ReactNode }> = ({
+    children,
+}) => {
+    const [speechRate, setSpeechRate] = useStorage<number>("speechRate", 1);
+    return (
+        <SpeechRateContext.Provider
+            value={{
+                savedValue: speechRate,
+                setSavedValue: setSpeechRate,
+            }}
+        >
+            {children}
+        </SpeechRateContext.Provider>
     );
 };
 
