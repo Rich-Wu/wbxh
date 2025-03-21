@@ -61,16 +61,6 @@ export const DraggedTokenProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-// export const SavedTokensProvider = ({ children }: { children: ReactNode }) => {
-//     const [savedTokens, setSavedTokens] = useState<Array<Token>>([]);
-
-//     return (
-//         <SavedTokensContext.Provider value={{ savedTokens, setSavedTokens }}>
-//             {children}
-//         </SavedTokensContext.Provider>
-//     );
-// };
-
 export const SavedTokensProvider: FC<{ children: ReactNode }> = ({
     children,
 }) => {
