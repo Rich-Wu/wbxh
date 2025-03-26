@@ -1,4 +1,10 @@
-import { useContext, useState } from "react";
+import {
+    ClassAttributes,
+    HTMLAttributes,
+    ReactNode,
+    useContext,
+    useState,
+} from "react";
 import Api from "./api";
 import classes from "classnames";
 import { DraggedTokenContext, SpeechContext } from "./Contexts";
@@ -6,6 +12,7 @@ import { Token } from "./Types";
 import { useSavedTokensContext } from "./Hooks";
 import classNames from "classnames";
 import { speak } from "./Utils";
+import { JSX } from "react/jsx-runtime";
 
 export const Line = ({
     line,
@@ -143,7 +150,7 @@ const Translated = ({
             );
         }
         out.push(
-            <TranslatedText
+            <DraggableTranslatedText
                 key={out.length}
                 translation={token}
                 speechRate={speechRate}
@@ -179,25 +186,15 @@ const UntranslatedText = ({ text }: { text: string }) => {
 const TranslatedText = ({
     translation,
     speechRate,
+    ...rest
 }: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     translation: any;
     speechRate: number;
-}) => {
+} & React.HTMLAttributes<HTMLDivElement>) => {
     const [showTranslation, setShowTranslation] = useState(false);
-    const { setDraggedToken } = useContext(DraggedTokenContext) || {};
 
     const voice = useContext(SpeechContext);
-
-    const handleDrag = () => {
-        if (!setDraggedToken) return;
-        setDraggedToken((prevToken: Token | null) => {
-            if (prevToken === translation) {
-                return prevToken;
-            }
-            return translation;
-        });
-    };
 
     return (
         <div
@@ -205,11 +202,7 @@ const TranslatedText = ({
             onClick={() => setShowTranslation(true)}
             onMouseLeave={() => setShowTranslation(false)}
             onDoubleClick={() => speak(translation.token, voice, speechRate)}
-            onDragStart={handleDrag}
-            onDragEnd={() => {
-                if (setDraggedToken) setDraggedToken(null);
-            }}
-            draggable
+            {...rest}
         >
             <div>{translation.token}</div>
             <div
@@ -308,9 +301,9 @@ export const SavedTokensList = ({ speechRate }: { speechRate: number }) => {
     const { savedValue: savedTokens } = useSavedTokensContext();
 
     return (
-        <div>
+        <div className={classNames("token-list")}>
             {savedTokens.map((token: Token) => (
-                <TranslatedText
+                <DraggableTranslatedTextWithMargins
                     key={token.token}
                     translation={token}
                     speechRate={speechRate}
@@ -322,4 +315,103 @@ export const SavedTokensList = ({ speechRate }: { speechRate: number }) => {
 
 export const Spinner = () => {
     return <div className="spinner"></div>;
+};
+
+export const SavedTokensPane = ({ speechRate }: { speechRate: number }) => {
+    const [hovered, setHovered] = useState(false);
+    const [shown, setShown] = useState(false);
+
+    const handleHoverOver = () => {
+        setHovered(true);
+    };
+    const handleHoverOut = () => {
+        setHovered(false);
+    };
+    const handleShow = () => {
+        setShown(!shown);
+    };
+
+    return (
+        <div
+            className={classNames(
+                "tokens",
+                { hovered: hovered },
+                { shown: shown }
+            )}
+            onMouseEnter={handleHoverOver}
+            onMouseLeave={handleHoverOut}
+        >
+            <FlexContainer>
+                <ShowTokensArrow onClick={handleShow} shown={shown} />
+                <SavedTokensList speechRate={speechRate} />
+            </FlexContainer>
+            <RemoveTokenDropZone />
+            <AddTokenDropZone />
+        </div>
+    );
+};
+
+export const FlexContainer = ({ children }: { children: ReactNode }) => {
+    return <div className={classNames("flex")}>{children}</div>;
+};
+
+const withDraggable = <P extends object>(
+    WrappedComponent: React.ComponentType<P>
+) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (props: P & { translation: any; speechRate: number }) => {
+        const { setDraggedToken } = useContext(DraggedTokenContext) || {};
+        const { translation } = props || {};
+
+        const handleDrag = () => {
+            if (!setDraggedToken) return;
+            setDraggedToken((prevToken: Token | null) => {
+                if (prevToken === translation) {
+                    return prevToken;
+                }
+                return translation;
+            });
+        };
+        return (
+            <WrappedComponent
+                {...props}
+                draggable
+                onDragStart={handleDrag}
+                onDragEnd={() => {
+                    if (setDraggedToken) setDraggedToken(null);
+                }}
+            />
+        );
+    };
+};
+
+const withMargins = <P extends object>(
+    WrappedComponent: React.ComponentType<P>,
+    margins: string
+) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (props: P) => {
+        return <WrappedComponent style={{ margin: margins }} {...props} />;
+    };
+};
+
+export const DraggableTranslatedText = withDraggable(TranslatedText);
+export const DraggableTranslatedTextWithMargins = withMargins(
+    DraggableTranslatedText,
+    "5px 10px"
+);
+
+const ShowTokensArrow = (
+    props: JSX.IntrinsicAttributes &
+        ClassAttributes<HTMLDivElement> &
+        HTMLAttributes<HTMLDivElement> & { shown: boolean }
+) => {
+    const { shown, ...rest } = props;
+    return (
+        <div className={classNames("flex", "w-150")}>
+            <div className={classNames("arrow", "center", "button")} {...rest}>
+                <div>{shown ? "→" : "←"}</div>
+            </div>
+        </div>
+    );
 };

@@ -53,12 +53,19 @@ button[type="submit"]:hover {
     display: flex;
 }
 
-.flex-row {
+.w-150 {
+    width: 150px;
+}
+
+.flex.flex-row {
     flex-direction: row;
+}
+
+.flex.wrap {
     flex-wrap: wrap;
 }
 
-.flex-column {
+.flex.flex-column {
     flex-direction: column;
 }
 
@@ -149,6 +156,88 @@ button[type="submit"]:hover {
     font-size: 1.2rem;
 }
 
+.token-list {
+    padding: 20px;
+}
+
+.tokens {
+    position: fixed;
+    display: flex;
+    right: -30%;
+    top: 0;
+    height: 100vh;
+    width: 40%;
+    transition: right 0.6s ease-in;
+}
+
+.tokens.hovered {
+    background: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.5) 50%,
+        rgba(0, 0, 0, 0.6) 70%,
+        rgba(0, 0, 0, 0.7) 100%
+    );
+}
+
+.tokens.hovered .arrow.button {
+    background: gray;
+    animation: bounceBackAndForth 0.9s ease infinite;
+}
+
+.tokens .arrow.button {
+    transition: scale 2s linear;
+}
+
+.tokens.shown .arrow.button {
+    transform: scale(0.9);
+    animation: none;
+    background: gray;
+    z-index: 100;
+}
+
+@keyframes bounceBackAndForth {
+    0% {
+        transform: translateX(5px);
+    }
+    50% {
+        transform: translateX(-5px);
+    }
+    100% {
+        transform: translateX(5px);
+    }
+}
+
+.center.arrow {
+    position: relative;
+    right: calc(25% - 5px);
+    align-self: center;
+    width: 25%;
+}
+
+.flex .arrow.button {
+    display: flex;
+    border-radius: 100%;
+    width: 30px;
+    height: 30px;
+    margin: auto;
+}
+
+.arrow.button > * {
+    margin: auto;
+}
+
+.tokens.shown {
+    right: 0;
+    background: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.5) 25%,
+        rgba(0, 0, 0, 0.6) 70%,
+        rgba(0, 0, 0, 0.7) 100%
+    );
+}
+
 @media (prefers-color-scheme: dark) {
     .dropZone.add {
         background-color: red;
@@ -168,7 +257,7 @@ button[type="submit"]:hover {
     .more-details:hover {
         border: 2px blueviolet solid;
         scale: 1.2;
-        z-index: 100;
+        z-index: 2;
         transition: all 0.15s;
     }
 

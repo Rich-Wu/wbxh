@@ -1,12 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import "./App.css";
-import {
-    AddTokenDropZone,
-    Line,
-    RemoveTokenDropZone,
-    SavedTokensList,
-    Spinner,
-} from "./lib/Components";
+import { Line, SavedTokensPane, Spinner } from "./lib/Components";
 import Api from "./lib/api";
 import { processText } from "./lib/Utils";
 import { OcrWorkerContext } from "./lib/Contexts";
@@ -137,9 +131,7 @@ function App() {
                             speechRate={speechRate}
                         />
                     ))}
-                    <SavedTokensList speechRate={speechRate} />
-                    <RemoveTokenDropZone />
-                    <AddTokenDropZone />
+                    <SavedTokensPane speechRate={speechRate} />
                 </SavedTokensProvider>
             </DraggedTokenProvider>
         </>
