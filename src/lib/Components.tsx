@@ -219,12 +219,16 @@ const TranslatedText = ({
 };
 
 export const AddTokenDropZone = () => {
-    const { savedValue: savedTokens, setSavedValue: setSavedTokens } =
-        useSavedTokensContext();
+    const {
+        seenTokens,
+        savedValue: savedTokens,
+        setSavedValue: setSavedTokens,
+    } = useSavedTokensContext();
     const { draggedToken } = useContext(DraggedTokenContext) || {};
 
     const handleDrop = () => {
-        if (draggedToken) setSavedTokens([...savedTokens, { ...draggedToken }]);
+        if (draggedToken && !seenTokens.has(draggedToken.token))
+            setSavedTokens([...savedTokens, { ...draggedToken }]);
     };
 
     return (

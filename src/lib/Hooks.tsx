@@ -30,7 +30,12 @@ export const useSavedTokensContext = () => {
             "useStorageContext must be used within a StorageProvider"
         );
     }
-    return context;
+    const savedTokens = context.savedValue;
+    const seenTokens = new Set();
+    for (const token of savedTokens) {
+        seenTokens.add(token.token);
+    }
+    return { seenTokens, ...context };
 };
 
 export const useSpeechRate = () => {
