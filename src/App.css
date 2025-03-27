@@ -128,46 +128,46 @@ button[type="submit"]:hover {
     margin: 8px 10px;
 }
 
-.dropZone.add {
-    position: fixed;
-    bottom: 1%;
-    right: 1%;
-    border-radius: 100%;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    margin: auto;
+.dropZone {
+    transition: all 0.1s ease-in;
     align-items: center;
     justify-content: center;
     font-size: 1.2rem;
+    display: flex;
+    border-radius: 100%;
+}
+
+.dropZone.add {
+    width: 85px;
+    height: 85px;
+    margin: 10px auto;
 }
 
 .dropZone.remove {
-    position: fixed;
-    bottom: 10%;
-    right: 1%;
-    border-radius: 100%;
+    align-self: flex-end;
     width: 60px;
     height: 60px;
-    display: flex;
-    margin: auto;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
+    margin: 10px 5px;
 }
 
 .token-list {
     padding: 20px;
+    width: 100%;
 }
 
 .tokens {
+    pointer-events: none;
     position: fixed;
     display: flex;
     right: -30%;
     top: 0;
     height: 100vh;
-    width: 40%;
+    min-width: 40%;
     transition: right 0.6s ease-in;
+}
+
+.tokens * {
+    pointer-events: auto;
 }
 
 .tokens.hovered {
@@ -225,6 +225,7 @@ button[type="submit"]:hover {
 
 .arrow.button > * {
     margin: auto;
+    align-self: center;
 }
 
 .tokens.shown {
@@ -238,15 +239,33 @@ button[type="submit"]:hover {
     );
 }
 
+.max-w-1028 {
+    max-width: 1028px;
+}
+
+.dropZone.hovered {
+    transform: scale(1.07);
+}
+
+.dropZone.add.hovered {
+    background-color: #02b714;
+    color: white;
+}
+
+.dropZone.remove.hovered {
+    background-color: red;
+    color: white;
+}
+
 @media (prefers-color-scheme: dark) {
     .dropZone.add {
-        background-color: red;
-        color: white;
+        background-color: lightgray;
+        color: #444444;
     }
 
     .dropZone.remove {
-        background-color: red;
-        color: white;
+        background-color: lightgray;
+        color: #444444;
     }
 
     .more-details {
@@ -259,6 +278,14 @@ button[type="submit"]:hover {
         scale: 1.2;
         z-index: 2;
         transition: all 0.15s;
+    }
+
+    .more-details:active {
+        cursor: -webkit-grabbing;
+        cursor: -moz-grabbing;
+        cursor: grabbing;
+        -webkit-user-select: none;
+        user-select: none;
     }
 
     .bubble {

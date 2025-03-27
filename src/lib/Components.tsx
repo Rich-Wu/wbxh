@@ -1,6 +1,8 @@
 import {
     ClassAttributes,
+    DragEventHandler,
     HTMLAttributes,
+    MouseEventHandler,
     ReactNode,
     useContext,
     useState,
@@ -13,6 +15,7 @@ import { useSavedTokensContext } from "./Hooks";
 import classNames from "classnames";
 import { speak } from "./Utils";
 import { JSX } from "react/jsx-runtime";
+import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 
 export const Line = ({
     line,
@@ -170,7 +173,7 @@ const Translated = ({
     return (
         <div className="flex flex-column bubble">
             <Speaker text={original} speechRate={speechRate} />
-            <div className={classes("flex", "flex-row", "flex-center")}>
+            <div className={classes("flex", "flex-row", "flex-center", "wrap")}>
                 {out.map((el) => el)}
             </div>
             <div>{translationText}</div>
@@ -224,17 +227,23 @@ export const AddTokenDropZone = () => {
         savedValue: savedTokens,
         setSavedValue: setSavedTokens,
     } = useSavedTokensContext();
-    const { draggedToken } = useContext(DraggedTokenContext) || {};
+    const draggedToken = useContext(DraggedTokenContext)?.draggedToken;
+    const [hovered, setHovered] = useState(false);
 
     const handleDrop = () => {
-        if (draggedToken && !seenTokens.has(draggedToken.token))
+        if (draggedToken?.token && !seenTokens.has(draggedToken.token))
             setSavedTokens([...savedTokens, { ...draggedToken }]);
+        setHovered(false);
     };
 
     return (
         <DroppableAddButton
+            onDragOver={() => setHovered(true)}
+            onDragLeave={() => setHovered(false)}
             onDrop={handleDrop}
-            classes={classNames("dropZone", "add")}
+            classes={classNames("dropZone", "add", {
+                hovered: hovered && draggedToken,
+            })}
         />
     );
 };
@@ -242,20 +251,27 @@ export const AddTokenDropZone = () => {
 export const RemoveTokenDropZone = () => {
     const { savedValue: savedTokens, setSavedValue: setSavedTokens } =
         useSavedTokensContext();
-    const { draggedToken } = useContext(DraggedTokenContext) || {};
+    const draggedToken = useContext(DraggedTokenContext)?.draggedToken;
+    const [hovered, setHovered] = useState(false);
 
     const handleDrop = () => {
+        setHovered(false);
         setSavedTokens(
             savedTokens.filter(
-                (token) => draggedToken && token.token != draggedToken.token
+                (token) =>
+                    draggedToken?.token && token.token != draggedToken.token
             )
         );
     };
 
     return (
         <DroppableRemoveButton
+            onDragOver={() => setHovered(true)}
+            onDragLeave={() => setHovered(false)}
             onDrop={handleDrop}
-            classes={classNames("dropZone", "remove")}
+            classes={classNames("dropZone", "remove", {
+                hovered: draggedToken && hovered,
+            })}
         />
     );
 };
@@ -266,11 +282,16 @@ const withDroppable = <P extends object>(
     return (
         props: P & {
             classes?: string;
-            onDrop?: (event: React.DragEvent) => void;
+            onDrop?: DragEventHandler;
+            onDragOver?: MouseEventHandler;
+            onDragLeave?: MouseEventHandler;
         }
     ) => {
         const handleDragOver = (event: React.DragEvent) => {
             event.preventDefault();
+            if (props.onDragOver) {
+                props.onDragOver(event);
+            }
         };
         const handleDrop = (event: React.DragEvent) => {
             event.preventDefault();
@@ -281,6 +302,7 @@ const withDroppable = <P extends object>(
         return (
             <div
                 onDragOver={handleDragOver}
+                onDragLeave={props.onDragLeave}
                 onDrop={handleDrop}
                 className={props.classes}
             >
@@ -291,11 +313,11 @@ const withDroppable = <P extends object>(
 };
 
 const RemoveButton = () => {
-    return <div className="center">-</div>;
+    return <Trash2 />;
 };
 
 const AddButton = () => {
-    return <div className={classes("center")}>✚</div>;
+    return <Plus size={"4rem"} strokeWidth={1} />;
 };
 
 const DroppableRemoveButton = withDroppable(RemoveButton);
@@ -307,10 +329,11 @@ export const SavedTokensList = ({ speechRate }: { speechRate: number }) => {
     return (
         <div className={classNames("token-list")}>
             {savedTokens.map((token: Token) => (
-                <DraggableTranslatedTextWithMargins
+                <DraggableTranslatedText
                     key={token.token}
                     translation={token}
                     speechRate={speechRate}
+                    style={{ margin: "5px 10px" }}
                 />
             ))}
         </div>
@@ -349,22 +372,43 @@ export const SavedTokensPane = ({ speechRate }: { speechRate: number }) => {
                 <ShowTokensArrow onClick={handleShow} shown={shown} />
                 <SavedTokensList speechRate={speechRate} />
             </FlexContainer>
-            <RemoveTokenDropZone />
-            <AddTokenDropZone />
+            <FlexContainer
+                style={{
+                    position: "fixed",
+                    flexDirection: "column-reverse",
+                    bottom: "1%",
+                    right: "1%",
+                }}
+            >
+                <AddTokenDropZone />
+                <RemoveTokenDropZone />
+            </FlexContainer>
         </div>
     );
 };
 
-export const FlexContainer = ({ children }: { children: ReactNode }) => {
-    return <div className={classNames("flex")}>{children}</div>;
+export const FlexContainer = ({
+    children,
+    ...rest
+}: { children: ReactNode } & JSX.IntrinsicAttributes &
+    ClassAttributes<HTMLDivElement> &
+    HTMLAttributes<HTMLDivElement>) => {
+    return (
+        <div className={classNames("flex")} {...rest}>
+            {children}
+        </div>
+    );
 };
 
 const withDraggable = <P extends object>(
     WrappedComponent: React.ComponentType<P>
 ) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (props: P & { translation: any; speechRate: number }) => {
+    return (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        props: P & { translation: any; speechRate: number; style?: object }
+    ) => {
         const { setDraggedToken } = useContext(DraggedTokenContext) || {};
+        const draggedToken = useContext(DraggedTokenContext)?.draggedToken;
         const { translation } = props || {};
 
         const handleDrag = () => {
@@ -379,6 +423,10 @@ const withDraggable = <P extends object>(
         return (
             <WrappedComponent
                 {...props}
+                style={{
+                    ...props.style,
+                    cursor: draggedToken ? "grabbing" : "grab",
+                }}
                 draggable
                 onDragStart={handleDrag}
                 onDragEnd={() => {
@@ -389,21 +437,7 @@ const withDraggable = <P extends object>(
     };
 };
 
-const withMargins = <P extends object>(
-    WrappedComponent: React.ComponentType<P>,
-    margins: string
-) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (props: P) => {
-        return <WrappedComponent style={{ margin: margins }} {...props} />;
-    };
-};
-
 export const DraggableTranslatedText = withDraggable(TranslatedText);
-export const DraggableTranslatedTextWithMargins = withMargins(
-    DraggableTranslatedText,
-    "5px 10px"
-);
 
 const ShowTokensArrow = (
     props: JSX.IntrinsicAttributes &
@@ -414,7 +448,7 @@ const ShowTokensArrow = (
     return (
         <div className={classNames("flex", "w-150")}>
             <div className={classNames("arrow", "center", "button")} {...rest}>
-                <div>{shown ? "→" : "←"}</div>
+                {shown ? <ChevronRight /> : <ChevronLeft />}
             </div>
         </div>
     );

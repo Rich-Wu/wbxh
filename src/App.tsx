@@ -6,6 +6,7 @@ import { processText } from "./lib/Utils";
 import { OcrWorkerContext } from "./lib/Contexts";
 import { DraggedTokenProvider, SavedTokensProvider } from "./lib/Providers";
 import { useSpeechRate } from "./lib/Hooks";
+import classNames from "classnames";
 
 function App() {
     const [key, setKey] = useState(import.meta.env.VITE_API_KEY || "");
@@ -96,7 +97,7 @@ function App() {
                             onChange={(e) =>
                                 setSpeechRate(Number(e.target.value))
                             }
-                            min="0.5"
+                            min="0.1"
                             max="2"
                             value={speechRate}
                             step="0.1"
@@ -123,14 +124,16 @@ function App() {
                             {waiting ? <Spinner /> : "Add File"}
                         </button>
                     </form>
-                    {lines.map((line) => (
-                        <Line
-                            api={api}
-                            line={line}
-                            key={line}
-                            speechRate={speechRate}
-                        />
-                    ))}
+                    <div className={classNames("max-w-1028")}>
+                        {lines.map((line) => (
+                            <Line
+                                api={api}
+                                line={line}
+                                key={line}
+                                speechRate={speechRate}
+                            />
+                        ))}
+                    </div>
                     <SavedTokensPane speechRate={speechRate} />
                 </SavedTokensProvider>
             </DraggedTokenProvider>

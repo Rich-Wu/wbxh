@@ -2,8 +2,13 @@ import Tesseract from "tesseract.js";
 
 Tesseract.setLogging(false);
 
+const worker = await Tesseract.createWorker(
+    "chi_sim+osd",
+    Tesseract.OEM.DEFAULT
+);
+
 const recognizeImage = async (image: File) => {
-    return await Tesseract.recognize(image, "chi_sim");
+    return await worker.recognize(image);
 };
 
 onmessage = async function (e) {
